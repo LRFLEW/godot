@@ -245,18 +245,15 @@ struct Texture {
 		state_filter = p_filter;
 		GLenum pmin = GL_NEAREST;
 		GLenum pmag = GL_NEAREST;
-		GLint max_lod = 0;
 		GLfloat anisotropy = 1.0f;
 		switch (state_filter) {
 			case RS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST: {
 				pmin = GL_NEAREST;
 				pmag = GL_NEAREST;
-				max_lod = 0;
 			} break;
 			case RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR: {
 				pmin = GL_LINEAR;
 				pmag = GL_LINEAR;
-				max_lod = 0;
 			} break;
 			case RS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC: {
 				anisotropy = config->anisotropic_level;
@@ -264,15 +261,10 @@ struct Texture {
 				[[fallthrough]];
 			case RS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIPMAPS: {
 				pmag = GL_NEAREST;
-				if (mipmaps <= 1) {
-					pmin = GL_NEAREST;
-					max_lod = 0;
-				} else if (config->use_nearest_mip_filter) {
+				if (config->use_nearest_mip_filter) {
 					pmin = GL_NEAREST_MIPMAP_NEAREST;
-					max_lod = 1000;
 				} else {
 					pmin = GL_NEAREST_MIPMAP_LINEAR;
-					max_lod = 1000;
 				}
 			} break;
 			case RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC: {
@@ -281,15 +273,10 @@ struct Texture {
 				[[fallthrough]];
 			case RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS: {
 				pmag = GL_LINEAR;
-				if (mipmaps <= 1) {
-					pmin = GL_LINEAR;
-					max_lod = 0;
-				} else if (config->use_nearest_mip_filter) {
+				if (config->use_nearest_mip_filter) {
 					pmin = GL_LINEAR_MIPMAP_NEAREST;
-					max_lod = 1000;
 				} else {
 					pmin = GL_LINEAR_MIPMAP_LINEAR;
-					max_lod = 1000;
 				}
 			} break;
 			default: {
@@ -298,8 +285,6 @@ struct Texture {
 		}
 		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, pmin);
 		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, pmag);
-		glTexParameteri(target, GL_TEXTURE_BASE_LEVEL, 0);
-		glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, max_lod);
 		if (config->support_anisotropic_filter) {
 			glTexParameterf(target, _GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
 		}

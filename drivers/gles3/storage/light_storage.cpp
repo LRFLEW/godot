@@ -799,7 +799,8 @@ bool LightStorage::reflection_probe_instance_begin_render(RID p_instance, RID p_
 
 	if (atlas->depth == 0) {
 		// We need to create our textures
-		atlas->mipmap_count = Image::get_image_required_mipmaps(atlas->size, atlas->size, Image::FORMAT_RGBAH) - 1;
+		// Limit mipmaps so smallest is 4x4 for optimization
+		atlas->mipmap_count = MAX(1, Image::get_image_required_mipmaps(atlas->size, atlas->size, Image::FORMAT_RGBAH) - 1);
 		atlas->mipmap_count = MIN(atlas->mipmap_count, 8); // No more than 8 please..
 
 		glActiveTexture(GL_TEXTURE0);
@@ -808,6 +809,8 @@ bool LightStorage::reflection_probe_instance_begin_render(RID p_instance, RID p_
 			// We create one set of 6 layers for depth, we can reuse this when rendering.
 			glGenTextures(1, &atlas->depth);
 			glBindTexture(GL_TEXTURE_2D_ARRAY, atlas->depth);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
 			glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT24, atlas->size, atlas->size, 6, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
 
@@ -822,6 +825,8 @@ bool LightStorage::reflection_probe_instance_begin_render(RID p_instance, RID p_
 			GLuint color = 0;
 			glGenTextures(1, &color);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, color);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, atlas->mipmap_count - 1);
 			atlas->reflections.write[i].color = color;
 
 #ifdef GL_API_ENABLED
@@ -842,8 +847,6 @@ bool LightStorage::reflection_probe_instance_begin_render(RID p_instance, RID p_
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, atlas->mipmap_count - 1);
 
 			// Setup sizes and calculate how much memory we're using.
 			int mipmap_size = atlas->size;
@@ -860,6 +863,8 @@ bool LightStorage::reflection_probe_instance_begin_render(RID p_instance, RID p_
 			GLuint radiance = 0;
 			glGenTextures(1, &radiance);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, radiance);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, atlas->mipmap_count - 1);
 			atlas->reflections.write[i].radiance = radiance;
 
 #ifdef GL_API_ENABLED
@@ -880,8 +885,6 @@ bool LightStorage::reflection_probe_instance_begin_render(RID p_instance, RID p_
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, atlas->mipmap_count - 1);
 
 			// Same data size as our color buffer
 			GLES3::Utilities::get_singleton()->texture_allocated_data(radiance, data_size, String("Reflection probe atlas (") + String::num_int64(i) + String(", radiance)"));
@@ -1466,6 +1469,9 @@ bool LightStorage::_shadow_atlas_find_shadow(ShadowAtlas *shadow_atlas, int *p_i
 
 			if (is_omni) {
 				glBindTexture(GL_TEXTURE_CUBE_MAP, texture_id);
+				glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
+				glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 0);
+
 				for (int id = 0; id < 6; id++) {
 					glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + id, 0, format, size / 2, size / 2, 0, GL_DEPTH_COMPONENT, type, nullptr);
 				}
@@ -1491,6 +1497,8 @@ bool LightStorage::_shadow_atlas_find_shadow(ShadowAtlas *shadow_atlas, int *p_i
 				glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 			} else {
 				glBindTexture(GL_TEXTURE_2D, texture_id);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
 				glTexImage2D(GL_TEXTURE_2D, 0, format, size, size, 0, GL_DEPTH_COMPONENT, type, nullptr);
 
@@ -1583,6 +1591,8 @@ void LightStorage::update_directional_shadow_atlas() {
 		glGenTextures(1, &directional_shadow.depth);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, directional_shadow.depth);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
 		GLenum format = directional_shadow.use_16_bits ? GL_DEPTH_COMPONENT16 : GL_DEPTH_COMPONENT24;
 		GLenum type = directional_shadow.use_16_bits ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;

@@ -210,6 +210,8 @@ void RenderSceneBuffersGLES3::_check_render_buffers() {
 		// Create our color buffer.
 		glGenTextures(1, &internal3d.color);
 		glBindTexture(texture_target, internal3d.color);
+		glTexParameteri(texture_target, GL_TEXTURE_BASE_LEVEL, 0);
+		glTexParameteri(texture_target, GL_TEXTURE_MAX_LEVEL, 0);
 
 		if (use_multiview) {
 			glTexImage3D(texture_target, 0, color_internal_format, internal_size.x, internal_size.y, view_count, 0, color_format, color_type, nullptr);
@@ -227,6 +229,8 @@ void RenderSceneBuffersGLES3::_check_render_buffers() {
 		// Create our depth buffer.
 		glGenTextures(1, &internal3d.depth);
 		glBindTexture(texture_target, internal3d.depth);
+		glTexParameteri(texture_target, GL_TEXTURE_BASE_LEVEL, 0);
+		glTexParameteri(texture_target, GL_TEXTURE_MAX_LEVEL, 0);
 
 		if (use_multiview) {
 			glTexImage3D(texture_target, 0, GL_DEPTH_COMPONENT24, internal_size.x, internal_size.y, view_count, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
@@ -478,6 +482,8 @@ void RenderSceneBuffersGLES3::check_backbuffer(bool p_need_color, bool p_need_de
 	if (backbuffer3d.color == 0 && p_need_color) {
 		glGenTextures(1, &backbuffer3d.color);
 		glBindTexture(texture_target, backbuffer3d.color);
+		glTexParameteri(texture_target, GL_TEXTURE_BASE_LEVEL, 0);
+		glTexParameteri(texture_target, GL_TEXTURE_MAX_LEVEL, 0);
 
 		if (use_multiview) {
 			glTexImage3D(texture_target, 0, color_internal_format, internal_size.x, internal_size.y, view_count, 0, color_format, color_type, nullptr);
@@ -506,6 +512,8 @@ void RenderSceneBuffersGLES3::check_backbuffer(bool p_need_color, bool p_need_de
 	if (backbuffer3d.depth == 0 && p_need_depth) {
 		glGenTextures(1, &backbuffer3d.depth);
 		glBindTexture(texture_target, backbuffer3d.depth);
+		glTexParameteri(texture_target, GL_TEXTURE_BASE_LEVEL, 0);
+		glTexParameteri(texture_target, GL_TEXTURE_MAX_LEVEL, 0);
 
 		if (use_multiview) {
 			glTexImage3D(texture_target, 0, GL_DEPTH_COMPONENT24, internal_size.x, internal_size.y, view_count, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
@@ -579,6 +587,8 @@ void RenderSceneBuffersGLES3::check_glow_buffers() {
 		glGenTextures(1, &glow.levels[i].color);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, glow.levels[i].color);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, color_internal_format, level_size.x, level_size.y, 0, color_format, color_type, nullptr);
 
@@ -586,9 +596,6 @@ void RenderSceneBuffersGLES3::check_glow_buffers() {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
 		GLES3::Utilities::get_singleton()->texture_allocated_data(glow.levels[i].color, level_size.x * level_size.y * color_format_size, String("Glow buffer ") + String::num_int64(i));
 
